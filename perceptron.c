@@ -7,6 +7,15 @@ typedef int bool;
 #define true 1
 #define false 0
 
+
+/************************
+ *	NUMERO DE CAMADAS 	*
+ ************************/
+int NUMERO_DE_CAMADAS;
+
+
+
+
 /****************************
  * 		NUMERO DE VARIÁVEIS	*
  ***************************/
@@ -49,14 +58,14 @@ FILE * ARQUIVO;
 /**********************
  * VALORES DE ENTRADA.*
  **********************/
-float * * MATRIZ_ENTRADA;
+double * * MATRIZ_ENTRADA;
 
 
 
 /********************
- * 	MATRIZ DE PESOS *
+ * 	TENSOR DE PESOS *
  ********************/
-float * * PESOS;
+double * * * PESOS;
 
 /**********************
  * ARRANJO DE SIMBOLOS
@@ -99,14 +108,22 @@ int ativacao (int valor )
 }
 
 
+void estimulo (int * camada)
+{
+	int i, soma;
+	for ( i = 0; i < NUMERO_DE_VARIAVEIS - 1; i++)
+	{
+		// soma += camada [];
+	}
+}
 
 
 /**************************
  * FUNÇÃO DE TREINAMENTO
  *************************/
-void treinar()
+void treinar(int alvo)
 {
-
+	int i = 0;
 	
 }
 
@@ -128,6 +145,7 @@ void ajuda ()
 }
 
 
+
 /********************************
  * LE OS PARAMETROS DE ENTRADA. *
  *******************************/
@@ -138,6 +156,7 @@ int leParametros(int numeroDeParametros, char * parametros[])
 	//DECLARAÇÃO DE COMANDOS PADRÕES.
 	const char * Ajuda = "-h";
 	const char * ComandoArquivo = "-a";
+	const char * ComandoCamadas = "-c";
 	
 	//LÊ TODOS OS PARÂMETROS.
 	for ( indice = 1 ; indice < numeroDeParametros; indice++)
@@ -155,9 +174,14 @@ int leParametros(int numeroDeParametros, char * parametros[])
 			indice++;
 		}
 
+		if ( strcmp (parametros[indice], ComandoCamadas) == 0)
+		{
+			NUMERO_DE_CAMADAS = atoi(parametros[indice+1]);
+			indice++;
+		}
+		
 	}
 }
-
 
 
 
@@ -216,28 +240,45 @@ void leValoresDaLinhaDeEntrada( char * linhaDeEntrada)
 }
 
 
+
+
+
+/****************************
+*****************************
+*		INSTANCIAÇÃO 		*
+*****************************
+****************************/
+
+/****************************
+ * 			PESOS			*
+ ***************************/
 void instanciaPesos()
 {
-	PESOS = calloc(1*NUMERO_ENTRADAS,sizeof(int));
+	
+	PESOS = calloc(1*NUMERO_DE_CAMADAS,sizeof(double**));
 	int i = 0;
-	for (i = 0; i < NUMERO_ENTRADAS; i++)
-	{
-		PESOS[i] = calloc(NUMERO_DE_VARIAVEIS,sizeof(int));
+	int kamadas;
+	for (kamadas = 0; kamadas < NUMERO_DE_CAMADAS; kamadas++){
+		PESOS[kamadas] = calloc (NUMERO_ENTRADAS, sizeof(double*));
+		for (i = 0; i < NUMERO_ENTRADAS; i++)
+		{
+			PESOS[kamadas][i] = calloc(NUMERO_DE_VARIAVEIS,sizeof(double));
+		}
 	}
 }
 
 
 
-/***
- *	INSTANCIA MATRIZES DE ENTRADA; 
-*/
+/************************************
+*	INSTANCIA MATRIZES DE ENTRADA; 	*
+*************************************/
 void instanciaMatriz()
 {
-	MATRIZ_ENTRADA = calloc(1*NUMERO_ENTRADAS,sizeof(float));
+	MATRIZ_ENTRADA = calloc(1*NUMERO_ENTRADAS,sizeof(double*));
 	int i = 0;
 	for (i = 0; i < NUMERO_ENTRADAS; i++)
 	{
-		MATRIZ_ENTRADA[i] = calloc(NUMERO_DE_VARIAVEIS,sizeof(float));
+		MATRIZ_ENTRADA[i] = calloc(NUMERO_DE_VARIAVEIS,sizeof(double));
 	}
 }
 
@@ -248,41 +289,54 @@ void instanciaMatriz()
  ***/
 void insereValorNaMatriz(int linha , int indice,char * valor)
 {
-	MATRIZ_ENTRADA[linha][indice] = atof(valor);
+	MATRIZ_ENTRADA[linha][indice] = strtod (valor, NULL);
 }
 
 
-/**
- *	INSERE VALOR ALETÓRIO NA MATRIZ DE PESOS 
- ***/
+/*********************************************
+ *	INSERE VALOR ALETÓRIO NA MATRIZ DE PESOS * 
+ ********************************************/
 void insereValoresAleatoriosDePesos()
 {
-	int i;
-	int j = 0;
-	printf("PESOS:\n");
-	for (i = 0 ; i < NUMERO_ENTRADAS; i++)
+	int i,j,k;
+	for (k = 0; k < NUMERO_DE_CAMADAS; k++)
 	{
-		for(j = 0; j < NUMERO_DE_VARIAVEIS; j++)
+		printf ("Peso [%i]\n",k);
+		for (i = 0 ; i < NUMERO_DE_VARIAVEIS; i++)
 		{
-			PESOS[i][j] = rand()%20;
-		}
-		printf("\n");	
-	}	
+			for(j = 0; j < NUMERO_DE_VARIAVEIS; j++)
+			{
+				PESOS[k][i][j] = rand()%20;
+				printf("[%.lf]",PESOS[k][i][j]);
+			}
+			printf("\n");
+		}	
+	}
 }
 
+
+/*********************************************
+ *			IMPRIME MATRIZ DE PESOS 		* 
+ ********************************************/
 void imprimeMatrizDePesos()
 {
-	int i;
+	int i,k;
 	int j = 0;
-	printf("PESOS:\n");
-	for (i = 0 ; i < NUMERO_ENTRADAS; i++)
+
+	
+	for (k = 0; k < NUMERO_DE_CAMADAS; k++)
 	{
-		for(j = 0; j < NUMERO_DE_VARIAVEIS; j++)
-		{
-			printf("[%.2f] ",PESOS[i][j]);
-		}
-		printf("\n");	
-	}	
+		printf("PESOS [%i]:\n",k);
+		for (i = 0 ; i < NUMERO_ENTRADAS; i++)
+			{
+				for(j = 0; j < NUMERO_DE_VARIAVEIS; j++)
+				{
+					printf("[%.2f] ",PESOS[i][j]);
+				}
+				printf("\n");	
+			}	
+	}
+	
 }
 
 
@@ -302,10 +356,10 @@ void imprimeMatrizDeEntrada()
 	
 }
 
-/************************************
+/****************************************
  *	insere os dados da linha de entrada *
- *	na matriz						*
- ***********************************/
+ *	na matriz							*
+ ***************************************/
 void insereValoresNaMatriz(int numeroTupla, char * linhaDeEntrada)
 {
 	// const char delimitador = ",";
